@@ -19,11 +19,15 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 
 import '@clr/icons';
 import '@clr/icons/shapes/all-shapes';
+import { ConnectionService } from './connection.service';
+import { ConnectionComponent } from './connection/connection.component';
+import { LoginService } from './login.service';
 
 @NgModule({
   declarations: [
     AppComponent,
-    PageNotFoundComponent
+    PageNotFoundComponent,
+    ConnectionComponent,
   ],
   imports: [
     BrowserModule,
@@ -38,6 +42,8 @@ import '@clr/icons/shapes/all-shapes';
   providers: [
     AuthGuard,
     AlertService,
+    LoginService,
+    ConnectionService,
     { provide: 'API_URL', useValue: environment.apiUrl },
     { provide: LocationStrategy, useClass: HashLocationStrategy }
   ],

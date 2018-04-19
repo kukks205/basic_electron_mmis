@@ -1,9 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+declare var require: any;
+
+import { Component, OnInit, NgZone } from '@angular/core';
 import { Router } from '@angular/router'
 
-import { LoginService } from '../login.service';
 import { AlertService } from '../../alert.service';
 import { JwtHelper } from 'angular2-jwt';
+import { ConnectionService } from '../../connection.service';
+
+import { IConnection } from 'mysql';
+import { LoginService } from '../../login.service';
 
 @Component({
   selector: 'app-login-page',
@@ -16,13 +21,41 @@ export class LoginPageComponent implements OnInit {
   jwtHelper: JwtHelper = new JwtHelper();
   isLogging = false;
 
+  hospitalName: string;
+
   constructor(
+    private zone: NgZone,
     private loginService: LoginService,
     private router: Router,
-    private alert: AlertService
+    private alert: AlertService,
+    private connectionService: ConnectionService,
+    private alertService: AlertService
   ) { }
 
   ngOnInit() {
+    this.getHospitalName();
+  }
+
+  getHospitalName() {
+    let db: IConnection = this.connectionService.createConnection();
+    db.connect();
+
+    let sql = `select * from sys_settings where action_name='SYS_HOSPITAL'`;
+
+    db.query(sql, (error, results, fields) => {
+      if (error) {
+        this.alertService.error(error.message);
+      } else {
+        let rs: any = JSON.parse(results[0].value);
+        this.zone.run(() => {
+          this.hospitalName = rs.hospname;
+        });
+      }
+
+    });
+
+    db.end();
+
   }
 
   enterLogin(event) {
@@ -32,31 +65,38 @@ export class LoginPageComponent implements OnInit {
     }
   }
 
-  doLogin() {
-    this.isLogging = true;
-    const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE0OTIxNTIxNTAsImV4cCI6MTUyMzY4ODE1MCwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoianJvY2tldEBleGFtcGxlLmNvbSIsImZpcnN0bmFtZSI6IkpvaG5ueSIsImxhc3RuYW1lIjoiUm9ja2V0IiwiRW1haWwiOiJqcm9ja2V0QGV4YW1wbGUuY29tIiwiUm9sZSI6WyJNYW5hZ2VyIiwiUHJvamVjdCBBZG1pbmlzdHJhdG9yIl19.PHIh0fVzpbTqi8h74stfts_CqgEmku-j0NV5G1iS0BI'
-    
-    sessionStorage.setItem('token', token);
-    sessionStorage.setItem('fullname', 'Satit Rianpit');
-    this.isLogging = false;
-    //redirect to admin module
-    this.router.navigate(['admin']);
+  async doLogin() {
+    let db: IConnection = this.connectionService.createConnection();
+    try {
+      let rs: any = await this.loginService.doLogin(db, this.username, this.password);
+      if (rs.length) {
+        console.log(rs[0].access_right);
+        let _rights = rs[0].access_right;
+        if (_rights) {
+          let rights = rs[0].access_right.split(',');
+          let isAdmin = rights.indexOf('UM_ADMIN');
 
-    // this.loginService.testLogin(this.username, this.password)
-    //   .then((token: string) => {
-    //     const decodedToken = this.jwtHelper.decodeToken(token);
-    //     const fullname = `${decodedToken.firstname} ${decodedToken.lastname}`;
+          let fullname = rs[0].fname + ' ' + rs[0].lname;
 
-    //     sessionStorage.setItem('token', token);
-    //     sessionStorage.setItem('fullname', fullname);
-    //     // hide spinner
-    //     this.isLogging = false;
-    //     // redirect to admin module
-    //     this.router.navigate(['admin']);
-    //   })
-    //   .catch((error) => {
-    //     this.isLogging = false;
-    //     this.alert.error(JSON.stringify(error));
-    //   });
+          sessionStorage.setItem('fullname', fullname);
+
+          if (isAdmin === -1) {
+            this.alertService.error('คุณไม่มีสิทธิเข้าใช้งาน');
+          } else {
+            this.router.navigate(['/admin']);
+          }
+          
+        } else {
+          this.alertService.error('คุณไม่มีสิทธิเข้าใช้งาน');
+        }
+
+
+      } else {
+        this.alertService.error('ชื่อผู้ใช้งาน หรือ รหัสผ่านไม่ถูกต้อง')
+      }
+    } catch (error) {
+      console.log(error);
+      this.alertService.error(error.message);
+    }
   }
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "project": {
-    "name": "wm"
+    "name": "web"
   },
   "apps": [
     {
@@ -28,36 +28,39 @@
         "../node_modules/mutationobserver-shim/dist/mutationobserver.min.js",
         "../node_modules/@webcomponents/custom-elements/custom-elements.min.js"
       ],
-      "environmentSource": "environments/environment.ts",
-      "environments": {
-        "dev": "environments/environment.ts",
-        "prod": "environments/environment.prod.ts"
+        "environmentSource": "environments/environment.ts",
+        "environments": {
+          "dev": "environments/environment.ts",
+          "prod": "environments/environment.prod.ts"
+        }
       }
-    }
-  ],
-  "e2e": {
-    "protractor": {
-      "config": "./protractor.conf.js"
-    }
-  },
-  "lint": [
-    {
-      "project": "src/tsconfig.app.json"
+    ],
+    "e2e": {
+      "protractor": {
+        "config": "./protractor.conf.js"
+      }
     },
-    {
-      "project": "src/tsconfig.spec.json"
+    "lint": [
+      {
+        "project": "src/tsconfig.app.json",
+        "exclude": "**/node_modules/**"
+      },
+      {
+        "project": "src/tsconfig.spec.json",
+        "exclude": "**/node_modules/**"
+      },
+      {
+        "project": "e2e/tsconfig.e2e.json",
+        "exclude": "**/node_modules/**"
+      }
+    ],
+    "test": {
+      "karma": {
+        "config": "./karma.conf.js"
+      }
     },
-    {
-      "project": "e2e/tsconfig.e2e.json"
+    "defaults": {
+      "styleExt": "css",
+      "component": {}
     }
-  ],
-  "test": {
-    "karma": {
-      "config": "./karma.conf.js"
-    }
-  },
-  "defaults": {
-    "styleExt": "css",
-    "component": {}
   }
-}

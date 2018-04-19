@@ -7,8 +7,6 @@ import { LoginRoutingModule } from './login-routing.module';
 import { HelperModule } from '../helper/helper.module';
 import { LoginPageComponent } from './login-page/login-page.component';
 
-import { LoginService } from './login.service';
-
 @NgModule({
   imports: [
     CommonModule,
@@ -17,7 +15,6 @@ import { LoginService } from './login.service';
     HelperModule,
     ClarityModule
   ],
-  declarations: [LoginPageComponent],
-  providers: [LoginService]
+  declarations: [LoginPageComponent]
 })
 export class LoginModule { }
